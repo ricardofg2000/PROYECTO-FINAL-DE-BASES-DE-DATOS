@@ -98,49 +98,63 @@ CALL numero_veces_pedidos(4, @num_pedidos);
 SELECT @num_pedidos;
 
 
--- 1.- Muestra la cantidad de pedidos año 2023, agrupados por el DNI del cliente
+-- 1.- Muestra la cantidad de pedidos año 2023, agrupados por el DNI del cliente. Se debe incluir el nombre y apellidos del cliente en la consulta
 
-SELECT Clientes_DNI, COUNT(*) AS cantidad_pedidos
-FROM pedidos
-WHERE YEAR(fecha_pedido) = 2023
-GROUP BY Clientes_DNI
+SELECT p.Clientes_DNI,c.nombre , c.apellidos , COUNT(p.Clientes_DNI) AS cantidad_pedidos
+FROM pedidos p
+inner join clientes c on c.DNI = p.Clientes_DNI
+WHERE YEAR(p.fecha_pedido) = 2023
+GROUP BY p.Clientes_DNI
 ORDER BY cantidad_pedidos DESC;
 
--- 2.- Muestre los pedidos los cuales se hayan facturado(pedido en total) más 1000 y menos que 1250.
-SELECT lp.id_productos, sum(lp.Cantidad) as Cantidad
+-- 2.- Muestre el nombre de los productos los cuales se hayan facturado(pedido en total) más 1000 y menos que 1250 y cuantas veces se han pedido
+SELECT p.nombre_productos , sum(lp.Cantidad) as Cantidad
 FROM linea_pedido lp
+inner join productos p on p.id_productos = lp.id_productos
 GROUP BY lp.id_productos
 HAVING Cantidad > 1000 and Cantidad < 1250;
 
 --3.- Muestra el total gastado por el cliente con el DNI 78948561. Podemos utilizar la función ya realizada anteriormente “gasto_total_cliente”:
 SELECT gasto_total_cliente('78948561');
 
--- 4.- Listado de clientes (nombre y apellidos) que tienen en su teléfono 2 ceros seguidos.
-select c.nombre , c.apellidos, c.teléfono
+-- 4.- Listado de clientes que muestra la cantidad de productos comprados y el total que se han gastado (incluir el tipo de moneda, ejemplo: 40€ ), ordenados de mayor a menor según la cantidad.
+select c.nombre, sum(lp.Cantidad) as cantidad, concat((sum(lp.Cantidad*lp.PrecioUnidad)), '€') as Total_gastado
 from clientes c
-where c.teléfono like '%00%';
+inner join pedidos p on c.DNI = p.Clientes_DNI
+inner join linea_pedido lp on lp.id_Pedidos = p.id_Pedidos
+group by c.nombre
+order by cantidad DESC;
 
--- 5.- Lista la cantidad de pedidos que se han hecho en cada ciudad, ordenando de manera descendente.
-SELECT p.ciudad, COUNT(p.id_Pedidos) as cantidad
+-- 5.-Lista la cantidad de pedidos que se han hecho en cada ciudad, ordenando de manera descendente y cual ha sido el pedido más grande registrado en cada ciudad (no hace falta incluir que tipo de producto es el que se ha pedido.
+SELECT p.ciudad, count(*) as pedidos, max(lp.Cantidad)
 FROM pedidos p
-GROUP BY p.ciudad
-ORDER BY cantidad DESC;
+inner join linea_pedido lp on lp.id_Pedidos = p.id_Pedidos
+inner join productos p2 on lp.id_productos = p2.id_productos
+group by p.ciudad
+order by pedidos DESC;
 
 -- 1.- Vista
 CREATE VIEW vista_linea_pedido_1000_1250 AS
-SELECT lp.id_productos, SUM(lp.Cantidad) AS Cantidad
+SELECT p.nombre_productos , sum(lp.Cantidad) as Cantidad
 FROM linea_pedido lp
+inner join productos p on p.id_productos = lp.id_productos
 GROUP BY lp.id_productos
-HAVING Cantidad > 1000 AND Cantidad < 1250;
+HAVING Cantidad > 1000 and Cantidad < 1250;
+
+
 SELECT *
-FROM vista_linea_pedido;
+FROM vista_linea_pedido_1000_1250 ;
 
 -- 2.- Vista
 CREATE VIEW vista_pedidos_por_ciudad AS
-SELECT p.ciudad, COUNT(p.id_Pedidos) AS cantidad
+SELECT p.ciudad, count(*) as pedidos, max(lp.Cantidad)
 FROM pedidos p
-GROUP BY p.ciudad
-ORDER BY cantidad DESC;
+inner join linea_pedido lp on lp.id_Pedidos = p.id_Pedidos
+inner join productos p2 on lp.id_productos = p2.id_productos
+group by p.ciudad
+order by pedidos DESC;
+
+
 SELECT *
 FROM vista_pedidos_por_ciudad;
 
