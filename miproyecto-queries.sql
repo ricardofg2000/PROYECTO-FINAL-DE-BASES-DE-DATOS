@@ -69,33 +69,36 @@ END&&
 DELIMITER ;
 CALL detalle_cliente('78948561');
 
--- 3.- Procedimiento que introduciendo un id_producto, nos devuelva la cantidad que se ha pedido en total ese producto
+-- 3.- Procedimiento que mediante un cursor cuenta los clientes según el número de DNI por el que empieza. Deberá por tanto mostrar 9 lineas de texto de la siguiente forma: Cantidad de clientes cuyo DNI comienza por "el digito" :  total
 DELIMITER &&
-DROP PROCEDURE IF EXISTS numero_veces_pedidos&&
-CREATE PROCEDURE numero_veces_pedidos (
-IN id_producto INT,
-OUT num_pedidos INT
-)
+DROP PROCEDURE IF EXISTS contar_clientes_por_digito&&
+CREATE PROCEDURE contar_clientes_por_digito()
 BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE cantidad INT;
-    DECLARE cur CURSOR FOR SELECT lp.Cantidad FROM linea_pedido lp WHERE lp.id_productos = id_producto;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    SET num_pedidos = 0;
-    OPEN cur;
-        read_loop: LOOP
-            FETCH cur INTO cantidad;
-            IF done THEN
-                LEAVE read_loop;
-            END IF;
-        SET num_pedidos = num_pedidos + cantidad;
-        END LOOP;
-    CLOSE cur;
-end&&
+  DECLARE done INT DEFAULT FALSE;
+  DECLARE digito CHAR(1);
+  DECLARE total INT;
+  DECLARE mensaje VARCHAR(1000) DEFAULT '';
+  DECLARE contador CURSOR FOR SELECT DISTINCT LEFT(DNI, 1) FROM clientes;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+  
+  OPEN contador;
+  
+  read_loop: LOOP
+    FETCH contador INTO digito;
+    IF done THEN
+      LEAVE read_loop;
+    END IF;
+    SET total = 0;
+    SELECT COUNT(*) INTO total FROM clientes WHERE DNI LIKE CONCAT(digito, '%');
+    SET mensaje = CONCAT(mensaje, 'Cantidad de clientes cuyo DNI comienza por ', digito, ': ', total, '\n');
+  END LOOP;
+ 
+  CLOSE contador;
+  SELECT mensaje AS 'Listado';
+END&&
 
 DELIMITER ;
-CALL numero_veces_pedidos(4, @num_pedidos);
-SELECT @num_pedidos;
+CALL contar_clientes_por_digito();
 
 
 -- 1.- Muestra la cantidad de pedidos año 2023, agrupados por el DNI del cliente. Se debe incluir el nombre y apellidos del cliente en la consulta
