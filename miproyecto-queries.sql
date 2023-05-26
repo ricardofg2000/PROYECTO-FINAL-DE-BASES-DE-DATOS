@@ -2,7 +2,7 @@ use tienda;
 
 -- 1.- Función que recibe el DNI de un cliente y muestra el total de lo gastado por dicho cliente. En caso de que el cliente no exista o ese cliente no haya realizado ningún pedido, el resultado deberá de ser 0.
 
-SET GLOBAL log_bin_trust_function_creators = 1;
+
 DELIMITER &&
 DROP FUNCTION IF EXISTS gasto_total_cliente&&
 CREATE FUNCTION gasto_total_cliente (DNI_cliente VARCHAR(9))
@@ -25,7 +25,7 @@ SELECT gasto_total_cliente('78948561');
 SELECT gasto_total_cliente('10869088');
 
 -- 2.- Función al que se le pasa la id_categoria y liste los productos que corresponden a esa categoría
-SET GLOBAL log_bin_trust_function_creators = 1;
+
 DELIMITER &&
 DROP FUNCTION IF EXISTS productos_por_categoria&&
 CREATE FUNCTION productos_por_categoria (
