@@ -167,8 +167,6 @@ DNI VARCHAR(9) NOT NULL,
 nombre VARCHAR(45),
 apellidos VARCHAR(70),
 telefono VARCHAR(20),
-Proyecto Bases de Datos
-Base de Datos-Curso 2022-2023
 direccion VARCHAR(70),
 fecha DATETIME NOT NULL,
 PRIMARY KEY (id)
